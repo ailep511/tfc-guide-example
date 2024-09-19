@@ -24,7 +24,7 @@ resource "aws_sfn_state_machine" "new_account_application" {
   name     = "NewAccountApplicationStateMachine"
   role_arn = aws_iam_role.state_machine_role.arn
 
-  definition = templatefile("statemachine/application_service.asl.json", {
+  definition = templatefile("statemachines/statemachine.asl.json", {
     CheckIdentityFunctionArn            = aws_lambda_function.check_identity.arn
     CheckAddressFunctionArn             = aws_lambda_function.check_address.arn
     AccountsTable                       = aws_dynamodb_table.accounts.name
