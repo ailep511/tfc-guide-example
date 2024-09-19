@@ -1,0 +1,16 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Lambda Invoke",
+  "States": {
+      "Lambda Invoke": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "${LambdaFunction}"
+      },
+      "End": true
+      }
+  }
+}

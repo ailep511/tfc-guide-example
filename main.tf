@@ -104,3 +104,19 @@ policy = <<POLICY1
 }
 POLICY1
 }
+
+# State machine definition file with the variables to replace
+data "template_file" "SFDefinitionFile" {
+    template = file("statemachines/statemachine.asl.json")
+    vars = {
+        LambdaFunction  = aws_lambda_function.test_lambda.arn                                  
+    }
+}
+
+# Create the AWS Step Functions state machine
+resource "aws_sfn_state_machine" "sfn_state_machine" {
+    name_prefix   = "MyStateMachineViaTerraform-${random_string.random.id}"
+    role_arn      = aws_iam_role.StateMachineRole.arn
+    definition    = data.template_file.SFDefinitionFile.rendered
+    type          = "STANDARD"
+}
