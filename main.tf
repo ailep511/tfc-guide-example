@@ -111,7 +111,7 @@ resource "aws_lambda_function" "check_identity" {
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
   runtime       = "python3.12"
-  source_code_hash = data.archive_file.lambda.output_base64sha256
+  source_code_hash = data.archive_file.lambda_check_identity.output_base64sha256
 }
 
 resource "aws_cloudwatch_log_group" "check_identity" {
@@ -132,7 +132,7 @@ resource "aws_lambda_function" "check_address" {
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
   runtime       = "python3.12"
-  source_code_hash = data.archive_file.lambda.output_base64sha256
+  source_code_hash = data.archive_file.lambda_check_address.output_base64sha256
 }
 
 resource "aws_cloudwatch_log_group" "check_address" {
