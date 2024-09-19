@@ -98,14 +98,20 @@ resource "aws_iam_policy" "state_machine_policy" {
   })
 }
 
+# Create the function check_identity
+data "archive_file" "lambda_check_identity" {
+type        = "zip"
+source_file = "src/check-identity/app.py"
+output_path = "src/check-identity/app.zip"
+}
+
 resource "aws_lambda_function" "check_identity" {
-  filename      = "functions/check-identity/app.zip"
+  filename      = "src/check-identity/app.zip"
   function_name = "CheckIdentityFunction"
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
-  runtime       = "nodejs14.x"
-
-  source_code_hash = filebase64sha256("functions/check-identity/app.zip")
+  runtime       = "python3.12"
+  source_code_hash = data.archive_file.lambda.output_base64sha256
 }
 
 resource "aws_cloudwatch_log_group" "check_identity" {
@@ -113,14 +119,20 @@ resource "aws_cloudwatch_log_group" "check_identity" {
   retention_in_days = 7
 }
 
+# Create the function check_address
+data "archive_file" "lambda_check_address" {
+type        = "zip"
+source_file = "src/check-address/app.py"
+output_path = "src/check-address/app.zip"
+}
+
 resource "aws_lambda_function" "check_address" {
-  filename      = "functions/check-address/app.zip"
+  filename      = "src/check-address/app.zip"
   function_name = "CheckAddressFunction"
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
-  runtime       = "nodejs14.x"
-
-  source_code_hash = filebase64sha256("functions/check-address/app.zip")
+  runtime       = "python3.12"
+  source_code_hash = data.archive_file.lambda.output_base64sha256
 }
 
 resource "aws_cloudwatch_log_group" "check_address" {
