@@ -1,31 +1,106 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
-provider "aws" {
-  region = var.region
+terraform {
+required_providers {
+    aws = {
+    source  = "hashicorp/aws"
+    version = "~>4.0"
+    }
+}
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
+provider "aws" {}
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
+provider "random" {}
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
+resource "random_string" "random" {
+length           = 4
+special          = false
 }
 
-resource "aws_instance" "ubuntu" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
+resource "aws_iam_role" "function_role" {
+assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+    {
+        Action : "sts:AssumeRole"
+        Effect : "Allow"
+        Sid : ""
+        Principal = {
+        Service = "lambda.amazonaws.com"
+        }
+    }
+    ]
+})
+managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+}
 
-  tags = {
-    Name = var.instance_name
-  }
+# Create the function
+data "archive_file" "lambda" {
+type        = "zip"
+source_file = "src/lambda.py"
+output_path = "src/lambda.zip"
+}
+
+resource "aws_lambda_function" "test_lambda" {
+function_name    = "HelloFunction-${random_string.random.id}"
+role             = aws_iam_role.function_role.arn
+handler          = "lambda.lambda_handler"
+runtime          = "python3.9"
+filename         = "src/lambda.zip"
+source_code_hash = data.archive_file.lambda.output_base64sha256
+}
+
+# Explicitly create the function's log group to set retention and allow auto-cleanup
+resource "aws_cloudwatch_log_group" "lambda_function_log" {
+retention_in_days = 1
+name              = "/aws/lambda/${aws_lambda_function.test_lambda.function_name}"
+}
+
+# Create an IAM role for the Step Functions state machine
+resource "aws_iam_role" "StateMachineRole" {
+name              = "StepFunctions-Terraform-Role-${random_string.random.id}"
+assume_role_policy = <<Role1
+{
+"Version" : "2012-10-17",
+"Statement" : [
+    {
+    "Effect" : "Allow",
+    "Principal" : {
+        "Service" : "states.amazonaws.com"
+    },
+    "Action" : "sts:AssumeRole"
+    }
+]
+}
+Role1
+}
+
+# Create an IAM policy for the Step Functions state machine
+resource "aws_iam_role_policy" "StateMachinePolicy" {
+role = aws_iam_role.StateMachineRole.id
+policy = <<POLICY1
+{
+"Version" : "2012-10-17",
+"Statement" : [
+    {
+    "Effect" : "Allow",
+    "Action" : [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:CreateLogDelivery",
+        "logs:GetLogDelivery",
+        "logs:UpdateLogDelivery",
+        "logs:DeleteLogDelivery",
+        "logs:ListLogDeliveries",
+        "logs:PutResourcePolicy",
+        "logs:DescribeResourcePolicies",
+        "logs:DescribeLogGroups",
+        "cloudwatch:PutMetricData",
+        "lambda:InvokeFunction"
+    ],
+    "Resource" : "*"
+    }
+]
+}
+POLICY1
 }
