@@ -110,7 +110,7 @@ resource "aws_lambda_function" "check_identity" {
   function_name = "CheckIdentityFunction"
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
-  runtime       = "python3.12"
+  runtime       = "python3.10"
   source_code_hash = data.archive_file.lambda_check_identity.output_base64sha256
 }
 
@@ -131,7 +131,7 @@ resource "aws_lambda_function" "check_address" {
   function_name = "CheckAddressFunction"
   role          = aws_iam_role.lambda_role.arn
   handler       = "app.lambdaHandler"
-  runtime       = "python3.12"
+  runtime       = "python3.10"
   source_code_hash = data.archive_file.lambda_check_address.output_base64sha256
 }
 
