@@ -125,7 +125,7 @@
       "Resource": "arn:aws:states:::sqs:sendMessage",
       "InputPath": "$..interests[?(@.category==home)]",
       "Parameters": {
-        "QueueUrl": "${HomeInsuranceInterestQueueArn}",
+        "QueueUrl": "${HomeInsuranceInterestQueueUrl}",
         "MessageBody.$": "$"
       },
       "ResultSelector": {

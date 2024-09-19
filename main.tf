@@ -29,7 +29,7 @@ resource "aws_sfn_state_machine" "new_account_application" {
     CheckAddressFunctionArn             = aws_lambda_function.check_address.arn
     AccountsTable                       = aws_dynamodb_table.accounts.name
     SendCustomerNotificationSNSTopicArn = aws_sns_topic.send_customer_notification.arn
-    HomeInsuranceInterestQueueArn       = aws_sqs_queue.home_insurance_interest.arn
+    HomeInsuranceInterestQueueUrl       = aws_sqs_queue.home_insurance_interest.url
   })
 }
 
